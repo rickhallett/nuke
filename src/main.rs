@@ -83,7 +83,13 @@ enum Command {
 }
 
 fn main() -> ExitCode {
-    let cli = Cli::parse();
+    // Double-clicked as Nuke.app: no arguments, living inside a bundle.
+    // That's the muggle entry point; go straight to the menu bar.
+    let cli = if launched_from_bundle() {
+        Cli::parse_from(["nuke", "menu"])
+    } else {
+        Cli::parse()
+    };
     let cfg = match config::load() {
         Ok(c) => c,
         Err(e) => {
@@ -208,6 +214,13 @@ fn main() -> ExitCode {
         );
     }
     exit_status(failed)
+}
+
+fn launched_from_bundle() -> bool {
+    std::env::args_os().len() == 1
+        && std::env::current_exe()
+            .map(|p| p.components().any(|c| c.as_os_str() == "MacOS"))
+            .unwrap_or(false)
 }
 
 fn list(all: &[App], ancestors: &std::collections::HashSet<i32>) {
