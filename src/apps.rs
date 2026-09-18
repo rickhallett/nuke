@@ -50,7 +50,13 @@ impl App {
             NSApplicationActivationPolicy::Accessory => Policy::Accessory,
             _ => Policy::Prohibited,
         };
-        Self { handle, pid, name, bundle_id, policy }
+        Self {
+            handle,
+            pid,
+            name,
+            bundle_id,
+            policy,
+        }
     }
 
     /// Ask the app to quit (equivalent to ⌘Q). Returns false if the request could not be sent.
@@ -76,7 +82,10 @@ impl App {
     /// True if `needle` matches this app's name (case-insensitive) or bundle identifier.
     pub fn matches(&self, needle: &str) -> bool {
         self.name.eq_ignore_ascii_case(needle)
-            || self.bundle_id.as_deref().is_some_and(|b| b.eq_ignore_ascii_case(needle))
+            || self
+                .bundle_id
+                .as_deref()
+                .is_some_and(|b| b.eq_ignore_ascii_case(needle))
     }
 }
 
@@ -93,7 +102,8 @@ fn clean_name(raw: &str) -> String {
 /// Every application the workspace knows about, sorted by name.
 pub fn running() -> Vec<App> {
     let workspace = NSWorkspace::sharedWorkspace();
-    let mut apps: Vec<App> = workspace.runningApplications()
+    let mut apps: Vec<App> = workspace
+        .runningApplications()
         .to_vec()
         .into_iter()
         .map(App::from_handle)
@@ -137,7 +147,13 @@ fn parent_pid(pid: i32) -> Option<i32> {
     // SAFETY: the buffer is exactly `size` bytes of proc_bsdinfo, which is
     // what PROC_PIDTBSDINFO fills; the kernel returns the bytes written.
     let written = unsafe {
-        libc::proc_pidinfo(pid, libc::PROC_PIDTBSDINFO, 0, info.as_mut_ptr().cast(), size)
+        libc::proc_pidinfo(
+            pid,
+            libc::PROC_PIDTBSDINFO,
+            0,
+            info.as_mut_ptr().cast(),
+            size,
+        )
     };
     if written != size {
         return None;

@@ -1,4 +1,4 @@
-//! `~/.config/quitall/config.toml`
+//! `~/.config/nuke/config.toml`
 
 use std::path::PathBuf;
 
@@ -21,11 +21,13 @@ pub fn path() -> Option<PathBuf> {
     let base = std::env::var_os("XDG_CONFIG_HOME")
         .map(PathBuf::from)
         .or_else(|| std::env::var_os("HOME").map(|h| PathBuf::from(h).join(".config")))?;
-    Some(base.join("quitall").join("config.toml"))
+    Some(base.join("nuke").join("config.toml"))
 }
 
 pub fn load() -> Result<Config, String> {
-    let Some(path) = path() else { return Ok(Config::default()) };
+    let Some(path) = path() else {
+        return Ok(Config::default());
+    };
     match std::fs::read_to_string(&path) {
         Ok(text) => toml::from_str(&text).map_err(|e| format!("{}: {e}", path.display())),
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(Config::default()),

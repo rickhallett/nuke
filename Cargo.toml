@@ -1,8 +1,8 @@
 [package]
-name = "quitall"
+name = "nuke"
 version = "0.1.0"
 edition = "2024"
-description = "Quit all running macOS applications from the command line, with exclusions"
+description = "Quit every running macOS app from the command line. Nuke it from orbit."
 license = "MIT"
 
 [dependencies]

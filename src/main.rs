@@ -15,7 +15,7 @@ const BUILTIN_KEEP: &[&str] = &["com.apple.finder"];
 ///
 /// By default every app with a Dock icon is asked to quit gracefully, except
 /// Finder, the terminal you ran this from, and anything listed under `keep`
-/// in ~/.config/quitall/config.toml. Apps with unsaved changes will show their
+/// in ~/.config/nuke/config.toml. Apps with unsaved changes will show their
 /// own save dialog and stay open until it is answered.
 #[derive(Parser, Debug)]
 #[command(version, about, verbatim_doc_comment)]
@@ -29,11 +29,22 @@ struct Cli {
     dry_run: bool,
 
     /// Additional apps to leave running (name or bundle id). Repeatable or comma-separated.
-    #[arg(short = 'x', long = "except", value_name = "APP", value_delimiter = ',')]
+    #[arg(
+        short = 'x',
+        long = "except",
+        value_name = "APP",
+        value_delimiter = ','
+    )]
     except: Vec<String>,
 
     /// Quit only these apps (name or bundle id). Overrides the keep list.
-    #[arg(short, long, value_name = "APP", value_delimiter = ',', conflicts_with = "except")]
+    #[arg(
+        short,
+        long,
+        value_name = "APP",
+        value_delimiter = ',',
+        conflicts_with = "except"
+    )]
     only: Vec<String>,
 
     /// Also quit menu-bar / accessory apps (those without a Dock icon).
@@ -66,7 +77,7 @@ fn main() -> ExitCode {
     let cfg = match config::load() {
         Ok(c) => c,
         Err(e) => {
-            eprintln!("quitall: bad config: {e}");
+            eprintln!("nuke: bad config: {e}");
             return ExitCode::from(2);
         }
     };
@@ -107,7 +118,7 @@ fn main() -> ExitCode {
     if !cli.only.is_empty() {
         for o in &cli.only {
             if !all.iter().any(|a| a.matches(o)) {
-                eprintln!("quitall: {o}: not running");
+                eprintln!("nuke: {o}: not running");
             }
         }
     }
@@ -119,7 +130,11 @@ fn main() -> ExitCode {
         return ExitCode::SUCCESS;
     }
 
-    let verb = if cli.force { "Force quitting" } else { "Quitting" };
+    let verb = if cli.force {
+        "Force quitting"
+    } else {
+        "Quitting"
+    };
     for app in &targets {
         if !cli.quiet || cli.dry_run {
             println!("{verb} {}", describe(app));
@@ -134,12 +149,16 @@ fn main() -> ExitCode {
     let mut sent: Vec<&App> = Vec::new();
     let mut failed = 0;
     for app in &targets {
-        let ok = if cli.force { app.force_terminate() } else { app.terminate() };
+        let ok = if cli.force {
+            app.force_terminate()
+        } else {
+            app.terminate()
+        };
         if ok {
             sent.push(app);
         } else {
             failed += 1;
-            eprintln!("quitall: could not send quit to {}", describe(app));
+            eprintln!("nuke: could not send quit to {}", describe(app));
         }
     }
 
@@ -155,29 +174,44 @@ fn main() -> ExitCode {
     if !alive.is_empty() && force_after.is_some() && !cli.force {
         for app in &alive {
             if !cli.quiet {
-                println!("Force quitting {} (still running after {}s)", describe(app), wait.as_secs());
+                println!(
+                    "Force quitting {} (still running after {}s)",
+                    describe(app),
+                    wait.as_secs()
+                );
             }
             if !app.force_terminate() {
-                eprintln!("quitall: could not force quit {}", describe(app));
+                eprintln!("nuke: could not force quit {}", describe(app));
             }
         }
         alive = apps::wait_for_exit(&alive, timeout);
     }
 
     for app in &alive {
-        eprintln!("quitall: {} is still running (unsaved changes?)", describe(app));
+        eprintln!(
+            "nuke: {} is still running (unsaved changes?)",
+            describe(app)
+        );
     }
     failed += alive.len();
 
     if !cli.quiet {
         let quit = sent.len() - alive.len();
-        println!("Quit {quit} of {} app{}.", targets.len(), if targets.len() == 1 { "" } else { "s" });
+        println!(
+            "Quit {quit} of {} app{}.",
+            targets.len(),
+            if targets.len() == 1 { "" } else { "s" }
+        );
     }
     exit_status(failed)
 }
 
 fn list(all: &[App], ancestors: &std::collections::HashSet<i32>) {
-    let width = all.iter().map(|a| a.name.chars().count()).max().unwrap_or(0);
+    let width = all
+        .iter()
+        .map(|a| a.name.chars().count())
+        .max()
+        .unwrap_or(0);
     for app in all.iter().filter(|a| a.policy != Policy::Prohibited) {
         let note = if ancestors.contains(&app.pid) {
             "  (host terminal, protected)"
@@ -202,5 +236,9 @@ fn describe(app: &App) -> String {
 }
 
 fn exit_status(failed: usize) -> ExitCode {
-    if failed == 0 { ExitCode::SUCCESS } else { ExitCode::FAILURE }
+    if failed == 0 {
+        ExitCode::SUCCESS
+    } else {
+        ExitCode::FAILURE
+    }
 }
