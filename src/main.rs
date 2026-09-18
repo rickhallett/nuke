@@ -1,15 +1,15 @@
 mod apps;
 mod config;
+mod menu;
+mod plan;
 
 use std::process::ExitCode;
 use std::time::Duration;
 
-use clap::Parser;
+use clap::{Parser, Subcommand};
 
 use apps::{App, Policy};
-
-/// Always protected, regardless of config. Finder cannot be quit this way anyway.
-const BUILTIN_KEEP: &[&str] = &["com.apple.finder"];
+use plan::Plan;
 
 /// Quit all running macOS applications at once.
 ///
@@ -20,6 +20,9 @@ const BUILTIN_KEEP: &[&str] = &["com.apple.finder"];
 #[derive(Parser, Debug)]
 #[command(version, about, verbatim_doc_comment)]
 struct Cli {
+    #[command(subcommand)]
+    command: Option<Command>,
+
     /// List running apps and exit, without quitting anything.
     #[arg(short, long)]
     list: bool,
@@ -72,8 +75,21 @@ struct Cli {
     quiet: bool,
 }
 
+#[derive(Subcommand, Debug)]
+enum Command {
+    /// Run as a menu bar app: a status-bar icon with a Quit All button and a
+    /// tickable list of apps to keep. Shares the CLI's config file.
+    Menu,
+}
+
 fn main() -> ExitCode {
-    let cli = Cli::parse();
+    // Double-clicked as Nuke.app: no arguments, living inside a bundle.
+    // That's the muggle entry point; go straight to the menu bar.
+    let cli = if launched_from_bundle() {
+        Cli::parse_from(["nuke", "menu"])
+    } else {
+        Cli::parse()
+    };
     let cfg = match config::load() {
         Ok(c) => c,
         Err(e) => {
@@ -82,38 +98,32 @@ fn main() -> ExitCode {
         }
     };
 
+    if let Some(Command::Menu) = cli.command {
+        menu::run(cfg);
+        return ExitCode::SUCCESS;
+    }
+
     let all = apps::running();
     let ancestors = apps::ancestor_pids();
-    let self_pid = std::process::id() as i32;
 
     if cli.list {
         list(&all, &ancestors);
         return ExitCode::SUCCESS;
     }
 
-    let include_accessory = cli.include_accessory || cfg.include_accessory;
-    let keep: Vec<&str> = BUILTIN_KEEP
+    let keep: Vec<&str> = cfg
+        .keep
         .iter()
-        .copied()
-        .chain(cfg.keep.iter().map(String::as_str))
-        .chain(cli.except.iter().map(String::as_str))
+        .chain(cli.except.iter())
+        .map(String::as_str)
         .collect();
-
-    let targets: Vec<&App> = all
-        .iter()
-        .filter(|a| a.pid != self_pid && !ancestors.contains(&a.pid))
-        .filter(|a| {
-            if !cli.only.is_empty() {
-                return cli.only.iter().any(|o| a.matches(o));
-            }
-            let visible = match a.policy {
-                Policy::Regular => true,
-                Policy::Accessory => include_accessory,
-                Policy::Prohibited => false,
-            };
-            visible && !keep.iter().any(|k| a.matches(k))
-        })
-        .collect();
+    let plan = Plan {
+        keep,
+        only: &cli.only,
+        include_accessory: cli.include_accessory || cfg.include_accessory,
+        ancestors: &ancestors,
+    };
+    let targets: Vec<&App> = all.iter().filter(|a| plan.targets(a)).collect();
 
     if !cli.only.is_empty() {
         for o in &cli.only {
@@ -204,6 +214,13 @@ fn main() -> ExitCode {
         );
     }
     exit_status(failed)
+}
+
+fn launched_from_bundle() -> bool {
+    std::env::args_os().len() == 1
+        && std::env::current_exe()
+            .map(|p| p.components().any(|c| c.as_os_str() == "MacOS"))
+            .unwrap_or(false)
 }
 
 fn list(all: &[App], ancestors: &std::collections::HashSet<i32>) {

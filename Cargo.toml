@@ -1,6 +1,6 @@
 [package]
 name = "nuke"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 description = "Quit every running macOS app from the command line. Nuke it from orbit."
 license = "MIT"
@@ -9,10 +9,15 @@ license = "MIT"
 clap = { version = "4.6", features = ["derive"] }
 libc = "0.2"
 objc2 = "0.6"
-objc2-app-kit = { version = "0.3", default-features = false, features = ["std", "libc", "NSRunningApplication", "NSWorkspace"] }
-objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSArray", "NSString"] }
+objc2-app-kit = { version = "0.3", default-features = false, features = [
+    "std", "libc", "NSRunningApplication", "NSWorkspace",
+    "NSApplication", "NSResponder", "NSStatusBar", "NSStatusItem", "NSStatusBarButton",
+    "NSButton", "NSControl", "NSView", "NSCell", "NSMenu", "NSMenuItem", "NSImage", "objc2-core-foundation",
+] }
+objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSArray", "NSString", "NSObject", "NSGeometry", "NSData"] }
 serde = { version = "1", features = ["derive"] }
 toml = "0.9"
+toml_edit = "0.25.15"
 
 [profile.release]
 strip = true

@@ -1,0 +1,65 @@
+name: release
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-latest
+    env:
+      VERSION: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin, x86_64-apple-darwin
+
+      - name: Check tag matches Cargo.toml
+        run: |
+          cargo_version=$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)
+          test "v$cargo_version" = "$VERSION" || { echo "tag $VERSION != Cargo.toml $cargo_version"; exit 1; }
+
+      - name: Build universal binary
+        run: |
+          cargo build --release --locked --target aarch64-apple-darwin
+          cargo build --release --locked --target x86_64-apple-darwin
+          mkdir -p dist
+          lipo -create -output dist/nuke \
+            target/aarch64-apple-darwin/release/nuke \
+            target/x86_64-apple-darwin/release/nuke
+          codesign --force --sign - dist/nuke
+          lipo -info dist/nuke
+          dist/nuke --version
+
+      - name: Package CLI
+        run: |
+          v=${VERSION#v}
+          mkdir -p dist/cli && cp dist/nuke README.md LICENSE config.example.toml dist/cli/
+          tar -C dist/cli -czf "dist/nuke-$v-macos-universal.tar.gz" nuke README.md LICENSE config.example.toml
+
+      - name: Package Nuke.app
+        run: |
+          v=${VERSION#v}
+          scripts/bundle-app.sh dist/nuke "$v" dist
+          ditto -c -k --keepParent dist/Nuke.app "dist/Nuke-$v-macos-universal.zip"
+
+      - name: Checksums
+        working-directory: dist
+        run: shasum -a 256 *.tar.gz *.zip | tee SHA256SUMS
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v=${VERSION#v}
+          gh release create "$VERSION" \
+            --title "nuke $v" \
+            --generate-notes \
+            --notes-file .github/release-notes.md \
+            dist/nuke-$v-macos-universal.tar.gz \
+            dist/Nuke-$v-macos-universal.zip \
+            dist/SHA256SUMS

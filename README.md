@@ -8,6 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/rickhallett/nuke/actions/workflows/ci.yml"><img src="https://github.com/rickhallett/nuke/actions/workflows/ci.yml/badge.svg" alt="ci"></a>
+  <a href="https://github.com/rickhallett/nuke/releases/latest"><img src="https://img.shields.io/github/v/release/rickhallett/nuke?color=ff7b54" alt="release"></a>
   <img src="https://img.shields.io/badge/platform-macOS-000000?logo=apple&logoColor=white" alt="macOS">
   <img src="https://img.shields.io/badge/rust-stable-DEA584?logo=rust&logoColor=white" alt="rust stable">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT"></a>
@@ -40,6 +41,7 @@ nuke -a               # also take out menu-bar / accessory apps
 nuke --force-after 10 # ask nicely, then force-quit whatever's left after 10s
 nuke -f               # force-quit immediately. Unsaved work is lost. You were warned. Twice, now.
 nuke --no-wait        # launch and don't stick around for the fallout
+nuke menu             # menu bar mode (see below)
 ```
 
 Apps can be named by their visible name (case-insensitive) or bundle
@@ -61,6 +63,44 @@ Always protected, even with no config:
 | `0`  | 5 | Everything quit. All clear. |
 | `1`  | 3 | Survivors. Something refused, or is still up after the timeout (unsaved changes, usually). |
 | `2`  | 1 | Launch codes rejected: the config file didn't parse. |
+
+## Menu bar mode (the muggle edition)
+
+```
+nuke menu
+```
+
+puts a tiny mushroom cloud in the menu bar. (You asked. Well, one of us did.) Click it for a **Quit All** button, a
+**Force Quit All** button, and the list of running apps with their icons -
+tick one to keep it running. Ticks are written straight to the same
+`config.toml` the CLI reads (comments preserved), so the two never disagree.
+
+It's plain AppKit through the same bindings as the CLI; no Electron, no web
+view, no 200 MB.
+
+Don't do terminals? Download **`Nuke.app`** from the
+[latest release](https://github.com/rickhallett/nuke/releases/latest), drag it
+to Applications, right-click → Open the first time (no Apple Developer ID here,
+so Gatekeeper sulks once), then add it to *System Settings → General → Login
+Items* if you want it there every morning. It's the same binary in a nicer
+coat.
+
+Terminal person who still wants it at login? A LaunchAgent at
+`~/Library/LaunchAgents/dev.rickhallett.nuke.plist`:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>dev.rickhallett.nuke</string>
+  <key>ProgramArguments</key><array>
+    <string>/opt/homebrew/bin/nuke</string><string>menu</string>
+  </array>
+  <key>RunAtLoad</key><true/>
+</dict></plist>
+```
+
+then `launchctl load ~/Library/LaunchAgents/dev.rickhallett.nuke.plist`.
 
 ## Blast radius
 
@@ -88,7 +128,8 @@ A copy lives in [`config.example.toml`](config.example.toml).
 brew install rickhallett/tap/nuke
 ```
 
-Or from source:
+Or grab a universal binary (or `Nuke.app`) from the
+[releases](https://github.com/rickhallett/nuke/releases). Or from source:
 
 ```
 git clone https://github.com/rickhallett/nuke
