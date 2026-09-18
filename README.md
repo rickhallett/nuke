@@ -22,7 +22,7 @@
 There's a lovely little menu bar app called *Quit All*. It costs money.
 This one costs nothing, and the only thing it asks you to close is everything.
 
-`nuke` talks to AppKit's `NSWorkspace` / `NSRunningApplication` directly —
+`nuke` talks to AppKit's `NSWorkspace` / `NSRunningApplication` directly -
 no AppleScript, no Accessibility permission, no TCC dialog asking whether
 your terminal may "control" Calculator. A plain `nuke` is exactly ⌘Q in every
 app at once: anything with unsaved changes puts up its own save sheet and
