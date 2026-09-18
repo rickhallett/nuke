@@ -78,12 +78,13 @@ tick one to keep it running. Ticks are written straight to the same
 It's plain AppKit through the same bindings as the CLI; no Electron, no web
 view, no 200 MB.
 
-Don't do terminals? Download **`Nuke.app`** from the
+Don't do terminals? `brew install --cask rickhallett/tap/nuke-menu`, or
+download **`Nuke.app`** from the
 [latest release](https://github.com/rickhallett/nuke/releases/latest), drag it
-to Applications, right-click → Open the first time (no Apple Developer ID here,
-so Gatekeeper sulks once), then add it to *System Settings → General → Login
-Items* if you want it there every morning. It's the same binary in a nicer
-coat.
+to Applications, and right-click → Open the first time (no Apple Developer ID
+here, so Gatekeeper sulks once; the cask clears that for you). Add it to
+*System Settings → General → Login Items* if you want it there every morning.
+It's the same binary in a nicer coat.
 
 Terminal person who still wants it at login? A LaunchAgent at
 `~/Library/LaunchAgents/dev.rickhallett.nuke.plist`:
