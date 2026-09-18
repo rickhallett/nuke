@@ -11,6 +11,7 @@
   <img src="https://img.shields.io/badge/platform-macOS-000000?logo=apple&logoColor=white" alt="macOS">
   <img src="https://img.shields.io/badge/rust-stable-DEA584?logo=rust&logoColor=white" alt="rust stable">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT"></a>
+  <a href="https://github.com/rickhallett/homebrew-tap"><img src="https://img.shields.io/badge/brew-rickhallett%2Ftap%2Fnuke-FBB040?logo=homebrew&logoColor=white" alt="homebrew"></a>
   <img src="https://img.shields.io/badge/AppleScript-0%25-success" alt="0% AppleScript">
   <img src="https://img.shields.io/badge/Finder-survives-3aa0ff" alt="Finder survives">
   <img src="https://img.shields.io/badge/unsaved%20work-your%20problem-critical" alt="unsaved work: your problem">
@@ -82,6 +83,12 @@ include_accessory = false
 A copy lives in [`config.example.toml`](config.example.toml).
 
 ## Ground zero (install)
+
+```
+brew install rickhallett/tap/nuke
+```
+
+Or from source:
 
 ```
 git clone https://github.com/rickhallett/nuke
