@@ -14,7 +14,7 @@ objc2-app-kit = { version = "0.3", default-features = false, features = [
     "NSApplication", "NSResponder", "NSStatusBar", "NSStatusItem", "NSStatusBarButton",
     "NSButton", "NSControl", "NSView", "NSCell", "NSMenu", "NSMenuItem", "NSImage", "objc2-core-foundation",
 ] }
-objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSArray", "NSString", "NSObject", "NSGeometry"] }
+objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSArray", "NSString", "NSObject", "NSGeometry", "NSData"] }
 serde = { version = "1", features = ["derive"] }
 toml = "0.9"
 toml_edit = "0.25.15"

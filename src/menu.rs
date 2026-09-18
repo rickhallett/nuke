@@ -7,13 +7,15 @@ use std::process::Command;
 
 use objc2::rc::Retained;
 use objc2::runtime::{AnyObject, ProtocolObject};
-use objc2::{DefinedClass, MainThreadMarker, MainThreadOnly, define_class, msg_send, sel};
+use objc2::{
+    AnyThread, DefinedClass, MainThreadMarker, MainThreadOnly, define_class, msg_send, sel,
+};
 use objc2_app_kit::{
     NSApplication, NSApplicationActivationPolicy, NSControlStateValueOff, NSControlStateValueOn,
     NSImage, NSMenu, NSMenuDelegate, NSMenuItem, NSStatusBar, NSStatusItem,
     NSVariableStatusItemLength,
 };
-use objc2_foundation::{NSObject, NSObjectProtocol, NSSize, NSString, ns_string};
+use objc2_foundation::{NSData, NSObject, NSObjectProtocol, NSSize, NSString, ns_string};
 
 use crate::apps::{self, App};
 use crate::config::{self, Config};
@@ -211,6 +213,16 @@ impl Controller {
     }
 }
 
+/// A tiny mushroom cloud. Vector, so it's crisp at any scale; a template
+/// image, so it follows the menu bar's light/dark appearance.
+fn menubar_icon(_mtm: MainThreadMarker) -> Option<Retained<NSImage>> {
+    const SVG: &[u8] = include_bytes!("../assets/menubar.svg");
+    let img = NSImage::initWithData(NSImage::alloc(), &NSData::with_bytes(SVG))?;
+    img.setSize(NSSize::new(18.0, 18.0));
+    img.setTemplate(true);
+    Some(img)
+}
+
 fn report(r: Result<(), String>) {
     if let Err(e) = r {
         eprintln!("nuke: {e}");
@@ -228,15 +240,8 @@ pub fn run(cfg: Config) {
     let status_item =
         NSStatusBar::systemStatusBar().statusItemWithLength(NSVariableStatusItemLength);
     if let Some(button) = status_item.button(mtm) {
-        let symbol = NSImage::imageWithSystemSymbolName_accessibilityDescription(
-            ns_string!("power.circle"),
-            Some(ns_string!("nuke")),
-        );
-        match symbol {
-            Some(img) => {
-                img.setTemplate(true);
-                button.setImage(Some(&img));
-            }
+        match menubar_icon(mtm) {
+            Some(img) => button.setImage(Some(&img)),
             None => button.setTitle(ns_string!("☢")),
         }
         button.setToolTip(Some(ns_string!("nuke: quit all apps")));

@@ -70,7 +70,7 @@ Always protected, even with no config:
 nuke menu
 ```
 
-puts a ⏻ icon in the menu bar. Click it for a **Quit All** button, a
+puts a tiny mushroom cloud in the menu bar. (You asked. Well, one of us did.) Click it for a **Quit All** button, a
 **Force Quit All** button, and the list of running apps with their icons -
 tick one to keep it running. Ticks are written straight to the same
 `config.toml` the CLI reads (comments preserved), so the two never disagree.
