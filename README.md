@@ -20,7 +20,7 @@
 ---
 
 There's a lovely little menu bar app called *Quit All*. It costs money.
-This costs a `cargo build` and comes with a mushroom cloud.
+This one costs nothing, and the only thing it asks you to close is everything.
 
 `nuke` talks to AppKit's `NSWorkspace` / `NSRunningApplication` directly —
 no AppleScript, no Accessibility permission, no TCC dialog asking whether
@@ -51,8 +51,8 @@ Always protected, even with no config:
 
 - **Finder.** It wouldn't quit anyway. It has seen things.
 - **Whatever you launched `nuke` from.** It walks up the parent-process chain
-  and skips any app it finds there — Ghostty, iTerm, the Cursor terminal,
-  whichever — so it never pulls the rug out from under its own shell.
+  and skips any app it finds there - Ghostty, iTerm, the Cursor terminal,
+  whichever - so it never pulls the rug out from under its own shell.
 
 ### Exit status
 
