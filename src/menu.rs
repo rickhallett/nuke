@@ -60,6 +60,7 @@ define_class!(
 
         #[unsafe(method(toggleKeep:))]
         fn toggle_keep(&self, sender: &NSMenuItem) {
+            self.reload();
             let idx = sender.tag() as usize;
             let key = {
                 let apps = self.ivars().apps.borrow();
@@ -78,6 +79,7 @@ define_class!(
 
         #[unsafe(method(toggleAccessory:))]
         fn toggle_accessory(&self, _sender: Option<&AnyObject>) {
+            self.reload();
             let v = !self.ivars().include_accessory.get();
             self.ivars().include_accessory.set(v);
             report(config::set("include_accessory", toml_edit::value(v)));
@@ -111,6 +113,18 @@ impl Controller {
         let this = Self::alloc(mtm).set_ivars(ivars);
         // SAFETY: NSObject's init takes no arguments and returns an instance.
         unsafe { msg_send![super(this), init] }
+    }
+
+    /// Re-read the config file so edits made outside the menu (Edit Config…,
+    /// the CLI, a text editor) are never clobbered by the next tick.
+    fn reload(&self) {
+        match config::load() {
+            Ok(cfg) => {
+                *self.ivars().keep.borrow_mut() = cfg.keep;
+                self.ivars().include_accessory.set(cfg.include_accessory);
+            }
+            Err(e) => eprintln!("nuke: {e} (keeping last known settings)"),
+        }
     }
 
     fn plan<'a>(&'a self, keep: &'a [String]) -> Plan<'a> {
@@ -162,6 +176,7 @@ impl Controller {
 
     fn rebuild(&self, menu: &NSMenu) {
         let mtm = self.mtm();
+        self.reload();
         menu.removeAllItems();
 
         let all = apps::running();
