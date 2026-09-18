@@ -1,0 +1,13 @@
+# Copy to ~/.config/quitall/config.toml and edit.
+
+# Never quit these unless named explicitly with --only. Names or bundle ids.
+keep = ["1Password", "Ghostty"]
+
+# Seconds to wait for graceful quits before reporting stragglers.
+timeout = 5
+
+# Force-quit anything still running after this many seconds. Off by default.
+# force_after = 15
+
+# Also quit menu-bar / accessory apps by default.
+include_accessory = false
