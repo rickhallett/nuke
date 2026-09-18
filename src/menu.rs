@@ -137,6 +137,7 @@ impl Controller {
     }
 
     fn nuke(&self, force: bool) {
+        self.reload();
         let keep = self.ivars().keep.borrow();
         let plan = self.plan(&keep);
         for app in apps::running().iter().filter(|a| plan.targets(a)) {
