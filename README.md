@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.svg" width="220" alt="A cartoon mushroom cloud with ⌘Q in it. Finder survives.">
+  <img src="assets/logo.png" width="220" alt="A cartoon mushroom cloud with ⌘Q in it. Finder survives.">
 </p>
 
 <h1 align="center">nuke</h1>
