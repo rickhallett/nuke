@@ -79,6 +79,11 @@ impl App {
         rc == 0 || std::io::Error::last_os_error().raw_os_error() == Some(libc::EPERM)
     }
 
+    /// The app's icon, if it has a bundle with one.
+    pub fn icon(&self) -> Option<Retained<objc2_app_kit::NSImage>> {
+        self.handle.icon()
+    }
+
     /// True if `needle` matches this app's name (case-insensitive) or bundle identifier.
     pub fn matches(&self, needle: &str) -> bool {
         self.name.eq_ignore_ascii_case(needle)

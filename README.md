@@ -40,6 +40,7 @@ nuke -a               # also take out menu-bar / accessory apps
 nuke --force-after 10 # ask nicely, then force-quit whatever's left after 10s
 nuke -f               # force-quit immediately. Unsaved work is lost. You were warned. Twice, now.
 nuke --no-wait        # launch and don't stick around for the fallout
+nuke menu             # menu bar mode (see below)
 ```
 
 Apps can be named by their visible name (case-insensitive) or bundle
@@ -61,6 +62,35 @@ Always protected, even with no config:
 | `0`  | 5 | Everything quit. All clear. |
 | `1`  | 3 | Survivors. Something refused, or is still up after the timeout (unsaved changes, usually). |
 | `2`  | 1 | Launch codes rejected: the config file didn't parse. |
+
+## Menu bar mode
+
+```
+nuke menu
+```
+
+puts a ⏻ icon in the menu bar. Click it for a **Quit All** button, a
+**Force Quit All** button, and the list of running apps with their icons -
+tick one to keep it running. Ticks are written straight to the same
+`config.toml` the CLI reads (comments preserved), so the two never disagree.
+
+It's plain AppKit through the same bindings as the CLI; no Electron, no web
+view, no 200 MB. To start it at login, drop a LaunchAgent in
+`~/Library/LaunchAgents/dev.rickhallett.nuke.plist`:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>dev.rickhallett.nuke</string>
+  <key>ProgramArguments</key><array>
+    <string>/opt/homebrew/bin/nuke</string><string>menu</string>
+  </array>
+  <key>RunAtLoad</key><true/>
+</dict></plist>
+```
+
+then `launchctl load ~/Library/LaunchAgents/dev.rickhallett.nuke.plist`.
 
 ## Blast radius
 

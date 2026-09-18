@@ -34,3 +34,33 @@ pub fn load() -> Result<Config, String> {
         Err(e) => Err(format!("{}: {e}", path.display())),
     }
 }
+
+/// Key used to remember an app in `keep`: bundle id when it has one, else its name.
+pub fn keep_key(app: &crate::apps::App) -> String {
+    app.bundle_id.clone().unwrap_or_else(|| app.name.clone())
+}
+
+/// Rewrite one top-level key in the config file, preserving everything else
+/// (including comments). Creates the file if it does not exist.
+pub fn set(key: &str, value: toml_edit::Item) -> Result<(), String> {
+    let Some(path) = path() else {
+        return Err("cannot locate config dir".into());
+    };
+    let text = match std::fs::read_to_string(&path) {
+        Ok(t) => t,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => String::new(),
+        Err(e) => return Err(format!("{}: {e}", path.display())),
+    };
+    let mut doc: toml_edit::DocumentMut = text
+        .parse()
+        .map_err(|e| format!("{}: {e}", path.display()))?;
+    doc[key] = value;
+    if let Some(dir) = path.parent() {
+        std::fs::create_dir_all(dir).map_err(|e| format!("{}: {e}", dir.display()))?;
+    }
+    std::fs::write(&path, doc.to_string()).map_err(|e| format!("{}: {e}", path.display()))
+}
+
+pub fn keep_array(keep: &[String]) -> toml_edit::Item {
+    toml_edit::value(toml_edit::Array::from_iter(keep.iter().map(String::as_str)))
+}
